@@ -7,17 +7,20 @@ class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar')
+  @Column()
   title: string;
 
-  @Column('varchar')
+  @Column()
   type: 'income' | 'outcome';
 
   @Column('decimal')
   value: number;
 
   @ManyToOne(() => Category)
-  @JoinColumn()
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
+
+  @Column()
   category_id: string;
 
   @CreateDateColumn()

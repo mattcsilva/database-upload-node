@@ -2,10 +2,10 @@ import { getRepository, getCustomRepository } from 'typeorm';
 
 import AppError from '../errors/AppError';
 
+import TransactionsRepository from '../repositories/TransactionsRepository';
+
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
-
-import TransactionsRepository from '../repositories/TransactionsRepository';
 
 interface Request {
   title: string;
@@ -15,7 +15,7 @@ interface Request {
 }
 
 class CreateTransactionService {
-  public async execute({ title, value, type, category: categoryName }: Request): Promise<Transaction> {
+  public async execute({ title, value, type, category }: Request): Promise<Transaction> {
     const transactionsRepository = getCustomRepository(TransactionsRepository);
 
     if (type === 'outcome') {
@@ -28,24 +28,24 @@ class CreateTransactionService {
 
     const categoriesRepository = getRepository(Category);
 
-    let category = await categoriesRepository.findOne({ where: { title: categoryName } });
+    let transactionCategory = await categoriesRepository.findOne({ where: { title: category } });
     
-    if(!category) {
-      category = categoriesRepository.create({
-        title: categoryName
+    if(!transactionCategory) {
+      transactionCategory = categoriesRepository.create({
+        title: category
       });
 
-      categoriesRepository.save(category);
+      await categoriesRepository.save(transactionCategory);
     }
     
     const transaction = transactionsRepository.create({
       title,
       value,
-      category_id: category.id,
+      category: transactionCategory,
       type,
     });
 
-    transactionsRepository.save(transaction);
+    await transactionsRepository.save(transaction);
 
     return transaction;
   }
